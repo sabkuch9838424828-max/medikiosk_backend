@@ -3,10 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Paste your Supabase URI here or pass via Environment Variable
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:Database9936830410@db.pjotyjqmouiqubrmqjkr.supabase.co:5432/postgres"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Convert postgres:// to postgresql:// if needed
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
