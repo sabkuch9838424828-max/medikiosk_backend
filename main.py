@@ -40,18 +40,22 @@ def patient_otp_login(payload: schemas.PatientLoginInput, db: Session = Depends(
         patient = models.Patient(
             phone_number=payload.mobile,
             full_name=payload.full_name or "New Patient",
-            dob=payload.dob
+            dob=payload.dob,
+            password=payload.dob
         )
         db.add(patient)
         db.commit()
         db.refresh(patient)
-
     else:
-        if patient.dob and payload.dob and patient.dob != payload.dob:
-            raise HTTPException(
-                status_code=401,
-                detail="Date of birth does not match our records for this mobile number."
-            )
+        if patient.dob:
+            if payload.dob and patient.dob != payload.dob:
+                raise HTTPException(status_code=401, detail="Date of birth does not match our records.")
+        elif payload.dob:
+            patient.dob = payload.dob
+            db.commit()
+        if not patient.password and patient.dob:
+            patient.password = patient.dob
+            db.commit()
 
     return {
         "status": "success",
@@ -75,8 +79,11 @@ def patient_password_login(payload: schemas.PatientAuthPasswordInput, db: Sessio
         db.commit()
         db.refresh(patient)
     else:
-        if patient.password and patient.password != payload.password:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password.")
+        if not patient.password and patient.dob:
+            patient.password = patient.dob
+            db.commit()
+        if not patient.password or patient.password != payload.password:
+            raise HTTPException(status_code=401, detail="Invalid password.")
 
     return {
         "status": "success",
@@ -84,6 +91,7 @@ def patient_password_login(payload: schemas.PatientAuthPasswordInput, db: Sessio
         "full_name": patient.full_name,
         "abha_linked": bool(patient.abha_number)
     }
+    
 @app.post('/api/patient/link-abha')
 def link_abha(payload: schemas.LinkAbhaInput, db: Session = Depends(get_db)):
     patient = db.query(models.Patient).filter(models.Patient.id == payload.patient_id).first()
