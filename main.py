@@ -46,6 +46,13 @@ def patient_otp_login(payload: schemas.PatientLoginInput, db: Session = Depends(
         db.commit()
         db.refresh(patient)
 
+    else:
+        if patient.dob and payload.dob and patient.dob != payload.dob:
+            raise HTTPException(
+                status_code=401,
+                detail="Date of birth does not match our records for this mobile number."
+            )
+
     return {
         "status": "success",
         "patient_id": patient.id,
