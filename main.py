@@ -7,7 +7,7 @@ import schemas
 import models
 from extractor import extract_medical_report
 from database import session, engine, get_db
-from gemini import router as ai_router
+from extractor import router as ai_router
 from typing import Optional
 
 UPLOAD_DIR = "uploaded_documents"
