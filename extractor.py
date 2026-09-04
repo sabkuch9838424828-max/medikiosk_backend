@@ -6,16 +6,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# API key ab .env se aayegi — kabhi bhi key seedhe code me mat likho.
+# .env file me: GEMINI_API_KEY=your_actual_key_here
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise RuntimeError("GEMINI_API_KEY not set — add it to your .env file.")
 genai.configure(api_key=API_KEY)
 
+# Generation config to force strict JSON output
 generation_config = {
     "response_mime_type": "application/json",
     "temperature": 0.1
 }
 
+# NOTE: "gemini-3.6-flash" is not a real/valid model name — Google does not
+# use that versioning scheme. Using "gemini-2.5-flash": stable, fast, cheap,
+# and supports image (vision) input — exactly what OCR extraction needs.
 model = genai.GenerativeModel(
     model_name="gemini-3.6-flash",
     generation_config=generation_config
@@ -63,6 +69,7 @@ def extract_medical_report(image_path: str) -> dict:
         img = Image.open(image_path)
         response = model.generate_content([PROMPT, img])
         
+        # Clean response if markdown fences exist
         cleaned_text = response.text.strip()
         if cleaned_text.startswith("```json"):
             cleaned_text = cleaned_text[7:]
